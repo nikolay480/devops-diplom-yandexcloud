@@ -1,6 +1,7 @@
 
+## Установка и настройка мониторинга
 
-Сначала добавим  prometheus-community репозиторий.
+Сначала добавим  `prometheus-community` репозиторий.
 
 `helm repo add prometheus-community https://prometheus-community.github.io/helm-charts`
 

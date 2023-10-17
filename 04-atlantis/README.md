@@ -27,18 +27,18 @@ https://www.runatlantis.io/docs/deployment.html#kubernetes-helm-chart
 
 Настроим `webhook`, определим `secret` , отметим его для событий `Pull request reviews`,`Pushes`, `Issue comments`, `Pull requests`. 
 
-В репозитории с конфигурацией  также разметим [atlanti.yaml](https://github.com/nikolay480/diplom-IaaC/blob/main/atlantis.yaml)
+В репозитории с конфигурацией  также разметим [atlantis.yaml](https://github.com/nikolay480/diplom-IaaC/blob/main/atlantis.yaml)
 
 После всех подготовительных мероприятий можно запустить установку:
 
 `helm install atlantis runatlantis/atlantis -f values.yaml -n atlantis`
 
-По завершении установки, можно внести изменения в ветку `dev` репозитория с конфигурацией
+По завершении установки, можно внесем изменения в ветку `dev` репозитория с конфигурацией:
 ![](../images/atlantis1.png)
 
-Создать PullRequest:
+Создадим PullRequest:
 ![](./../images/atlantis3.png)
 ![](./../images/atlantis4.png)
 
-Перейдя по ссылке http://158.160.12.204:31414/ увидим lock state teraaform.
+Перейдя по ссылке http://158.160.12.204:31414/ увидим lock state terraform.
 ![](./../images/atlantis2.png)

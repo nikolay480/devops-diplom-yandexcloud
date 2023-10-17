@@ -1,4 +1,6 @@
-Перед запуском установим в кластер `secret` для доступ к YC Registry согласно [Документации](https://cloud.yandex.ru/docs/container-registry/operations/authentication#method).
+## Развертывание тестового приложения
+
+Перед запуском установим в кластер `secret` для доступ к YC Registry согласно [документации](https://cloud.yandex.ru/docs/container-registry/operations/authentication#method).
 
 1. Получим и сохраним в файл key.json авторизованный ключ для сервисного аккаунта `sa`:
 ```
@@ -27,11 +29,11 @@ cat $HOME/.docker/config.json
   --type=kubernetes.io/dockerconfigjson
 ```
 
-В манифесте deployment необходимо указать:
+  - В манифесте deployment необходимо указать:
 
 ```
 imagePullSecrets:
  - name: cr-key-secret
 ```
 
-Далее применим манифест k8s.yaml.
+- Далее применим манифест `kubectl apply -f ` [k8s.yaml](k8s.yaml) .

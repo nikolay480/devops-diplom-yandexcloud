@@ -19,10 +19,10 @@ ___
 
 В своем проекте я буду разворачивать Kubernetes самостоятельно, не используя сервис [Yandex Managed Service for Kubernetes](https://cloud.yandex.ru/services/managed-kubernetes). 
 
-Поэтому сначала при помощи Terraform подготовим [инфраструктуру](https://github.com/nikolay480/diplom-IaaC/tree/main) в Compute Cloud для создания Kubernetes-кластера. Через описание  [yandex_compute_instance_group](https://github.com/nikolay480/diplom-IaaC/blob/main/instance_group.tf) создадим 1 узел для `control-plane` и 3 узлы для `worker-nodes`.
+Поэтому сначала при помощи Terraform подготовим [инфраструктуру](https://github.com/nikolay480/diplom-IaaC/tree/main) в Compute Cloud для создания Kubernetes-кластера. Через описание  [yandex_compute_instance_group](https://github.com/nikolay480/diplom-IaaC/blob/main/instance_group.tf) создадим 1 узел для `control-plane` и 3 узла для `worker-nodes`.
 
 
-Далее воспользуемся [Kubespray](./01-kubespray/), предварительно настроив [Ansible конфигурацию](01-kubespray/inventory/k8s-cluster). В качестве инвентори используем файл [hosts.yaml](./01-kubespray/inventory/k8s-cluster/hosts.yaml).
+Далее воспользуемся `Kubespray`, предварительно настроив [Ansible конфигурацию](01-kubespray/inventory/k8s-cluster). В качестве инвентори используем файл [hosts.yaml](./01-kubespray/inventory/k8s-cluster/hosts.yaml).
 
 По завершении установки, скопировав содержимое файла [admin.conf](./01-kubespray/inventory/k8s-cluster/artifacts/admin.conf) в файл  `~/.kube/config`, подключимся к кластеру:
 
@@ -49,10 +49,12 @@ ___
 
 Для сбора основных метрик  Kubernetes  задеплоим в кластер Prometheus, Alertmanager, NodeExporter и  Grafana. Воспользуемся helm charts [prometheus-community](https://prometheus-community.github.io/helm-chart).
 
-Файл конфигурации и описнаие установки приведены в разделе [02-monitoring](./02-monitoring/).
+Файл конфигурации и описание установки приведены в разделе [02-monitoring](./02-monitoring/).
 
-По завершении установки будет доступен http интерфейс Grafana c дашбордами основных метрик:
+По завершении установки будет доступен [http интерфейс](http://158.160.12.204:30030) Grafana c дашбордами основных метрик:
 ![](images/grafana.png)
+
+**Примечание.** На скриншоте видно, что вход осуществлен по доменному имени.Здесь ради эксперимента ip адрес привязан к доменному имени, приобретенному  у одного из регистраторов.
 
 Кроме того, настроено оповещение в telegram от Alertmanager:
 
@@ -60,7 +62,8 @@ ___
 
 ### Деплоймент приложения
 
-Задеплоим наше приложение в кластере кубернетес
+Задеплоим наше приложение в кластере кубернетес: 
+
 `k apply -f ` [k8s.yaml](./03-deployment/k8s.yaml)
 
 Проверим его доступность по `http`:
@@ -71,7 +74,7 @@ ___
 
 Для отслеживания изменений инфраструктуры задеплоим в кластер и настроим  `Atlantis`.
 
-Файл конфигурации, описание установки, настройки и результаты приведены в разделе [04-atlantis](./04-atlantis/)
+Файл конфигурации, описание установки, настройки и результаты приведены в разделе [04-atlantis](./04-atlantis/).
 ___
 
 ## Установка и настройка CI/CD
@@ -80,7 +83,7 @@ ___
 
  Будем использовать систему Gitlab CI/CD, развернем с помошью `Managed Service for Gitlab` в Yandex Cloud.
 
- Gitlab Runner задеплоим в Kubernetes при помощи helm, задав необходимые значения в файле my-values.yaml
+ Gitlab Runner задеплоим в Kubernetes при помощи helm, задав необходимые значения в файле [my-values.yaml](./05-cicd/my-values.yaml).
 
  Перейдем в Gitlab по ссылке https://nik-dev.gitlab.yandexcloud.net.
 
