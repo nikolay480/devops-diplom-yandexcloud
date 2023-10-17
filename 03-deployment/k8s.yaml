@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitlab
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diplom-app
+  namespace: gitlab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: diplom-app
+  template:
+    metadata:
+      namespace: gitlab
+      labels:
+        app: diplom-app
+    spec:
+      containers:
+      - name: diplom-app
+        image: cr.yandex/crp87hb9jqfhvvcf3kj7/diplom-app:0.1
+        imagePullPolicy: Always
+      imagePullSecrets:
+      - name: cr-key-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: diplom-app-service
+  namespace: gitlab
+spec:
+  selector:
+    app: diplom-app
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      nodePort: 30080
+  type: NodePort

@@ -1,0 +1,138 @@
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 2
+  config:
+    global:
+      telegram_api_url: "https://api.telegram.org"
+    route:
+      receiver: telegram-alert
+      group_by: ['alertname', 'cluster', 'service']
+      repeat_interval: 1m
+      routes:
+        - match:
+            severity: critical
+          receiver: telegram-alert
+          continue: true
+    receivers:
+      - name: 'telegram-alert'
+        telegram_configs:
+        - send_resolved: true
+          chat_id: 311345185
+          bot_token: "6114717136:AAHEn0wSUjG3p7pIQ4o2KxT0dBqpTdr3pfw"
+          api_url: "https://api.telegram.org"
+          parse_mode: ""
+          # template: |-
+          #   {% if status == 'firing' -%}
+          #   👩‍🚒
+          #   {%- else -%}
+          #   🍻
+          #   {%- endif -%}
+          #   <b> {{ status | title }}: {{commonLabels.alertname}} ({{ alerts | length }})</b>
+          #   {%- if status == 'firing' and commonLabels.severity == "critical" %} ‼️
+          #   {%- endif %}
+
+          #   {{ commonAnnotations.summary|e }}
+          #   {% for label, value in commonAnnotations.items() if label != "summary" %}
+          #   <b>{{ label }}:</b> {{value}}
+          #   {%- endfor %}
+          #   {% for label, value in commonLabels.items() if label != "alertname" %}
+          #   <b>{{ label }}:</b> <code>{{value}}</code>
+          #   {%- endfor %}
+
+          #   {% for alert in alerts %}
+          #   {%- for label, value in alert.annotations.items() %}
+          #   <b>{{ label }}:</b> {{value}}
+          #   {%- endfor %}
+          #   {%- for label, value in alert.labels.items() %}
+          #   <b>{{ label }}:</b> <code>{{value}}</code>
+          #   {%- endfor -%}
+          #   {%- if loop.last -%}
+          #   <a href="{{ alert.generatorURL }}">Go to source</a>
+          #   {%- endif %}
+          #   {% endfor -%}
+          #   {% if ellipsis or truncatedAlerts == 1 %}
+          #   … (list truncated)
+          #   {% endif -%}
+          #   <a href="{{ externalURL }}">Go to Alertmanager</a>
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts: 
+      - alertmanager.nik.com
+    paths:
+      - /
+  
+  
+#####==-GRAFANA-==######
+
+grafana:
+  enabled: true
+  adminPassword: prom-operator
+  # Provision grafana-dashboards-kubernetes
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'grafana-dashboards-kubernetes'
+        orgId: 1
+        folder: 'Kubernetes'
+        type: file
+        disableDeletion: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/grafana-dashboards-kubernetes
+  dashboards:
+    grafana-dashboards-kubernetes:
+      k8s-system-api-server:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-system-api-server.json
+        token: ''
+      k8s-system-coredns:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-system-coredns.json
+        token: ''
+      k8s-views-global:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-global.json
+        token: ''
+      k8s-views-namespaces:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-namespaces.json
+        token: ''
+      k8s-views-nodes:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-nodes.json
+        token: ''
+      k8s-views-pods:
+        url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-pods.json
+        token: ''
+  
+
+
+      ## URL of prometheus datasource
+      ##
+    # url: "http://kube-prom-stack-kube-prome-prometheus:9090/"
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+      nginx.ingress.kubernetes.io/rewrite-target: /
+    labels: {}
+    hosts:
+      - grafana.nik.com
+    path: /
+
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30030
+
+##########==-Prometheus-==#######
+
+prometheus:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts: 
+      - prometheus.nik.com
+    paths:
+      - /
+    

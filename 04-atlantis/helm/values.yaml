@@ -1,0 +1,119 @@
+## -------------------------- ##
+# Values to override for your instance.
+## -------------------------- ##
+
+## An option to override the atlantis url,
+##   if not using an ingress, set it to the external IP.
+# atlantisUrl: http://10.0.0.0
+
+# Replace this with your own repo allowlist:
+orgAllowlist: github.com/nikolay480/*
+logLevel: "debug"
+
+# If using GitHub, specify like the following:
+github:
+  user: atlantis-nik
+vcsSecretName: atlantis-vcs
+
+# To reference an already existing Secret object with AWS credentials
+awsSecretName: aws-creds
+
+enableDiffMarkdownFormat: true
+
+image:
+  repository: ghcr.io/runatlantis/atlantis
+  # if not set appVersion field from Chart.yaml is used
+  tag: ""
+  pullPolicy: Always
+
+## Use Server Side Repo Config,
+## ref: https://www.runatlantis.io/docs/server-side-repo-config.html
+
+repoConfig: |
+  repos:
+  - id: github.com/nikolay480/atlantis-repo-test
+    branch: /.*/
+    plan_requirements: [approved]
+    apply_requirements: [approved]
+    allowed_overrides: [apply_requirements, delete_source_branch_on_merge]
+    allow_custom_workflows: true
+    delete_source_branch_on_merge: false
+  workflows:
+    default:
+      plan:
+        steps:
+          - run: cp /home/atlantis/terraform_files/.terraformrc /home/atlantis/
+          - init
+          - plan
+      apply:
+        steps:
+          - apply
+
+service:
+  type: NodePort
+  nodePort: 31414
+  port: 80
+  targetPort: 4141
+
+ingress:
+  enabled: true
+  ingressClassName:
+  apiVersion: ""
+  annotations: 
+  kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /*  # / for nginx
+  pathType: ImplementationSpecific
+  host: atlantis.nik.com
+
+volumeClaim:
+  enabled: true
+  ## Disk space for to check out repositories
+  dataStorage: 5Gi
+  # storageClassName: value
+
+# Optionally specify additional volume mounts for the container.
+extraVolumeMounts:
+  - name: ssh-volume
+    mountPath: home/atlantis/.ssh
+  - name: tf-volume
+    mountPath: home/atlantis/terraform_files
+
+# Optionally specify additional volumes for the pod.
+extraVolumes:
+  - name: ssh-volume
+    secret:
+      secretName: secret-ssh-auth
+      defaultMode: 0600
+      items:
+        - key: ssh-pub
+          path: id_rsa.pub
+        - key: ssh-privatekey
+          path: id_rsa
+  - name: tf-volume
+    projected:
+      sources:
+      - configMap:
+          name: terraformrc
+          items:
+          - key: terraformrc
+            path: .terraformrc
+      - secret:
+          name: yc-key-secret
+          items:
+          - key: sa-key.json 
+            path: sa-key.json
+
+# environmentSecrets:
+#   - name: YC_TOKEN
+#     secretKeyRef:
+#       name: env-yc-secret
+#       key: yc-token
+#   - name: TF_VAR_folder_id
+#     secretKeyRef:
+#       name: env-yc-secret
+#       key: yc-folder-id
+#   - name: TF_VAR_cloud_id
+#     secretKeyRef:
+#       name: env-yc-secret
+#       key: yc-cloud-id
